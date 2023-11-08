@@ -4,7 +4,7 @@ import AdoptedPetContext from "../utils/AdpotedPetContext";
 import Results from "./Results";
 import useBreedList from "../utils/useBreedList";
 import fetchSearch from "../utils/fetchSearch";
-const ANIMALS = ["bird", "cat", "dog", "rabbit", "reptile"];
+import useAnimalTypeList from "../utils/useAnimalTypeList";
 
 const SearchParams = () => {
   const [requestParams, setRequestParams] = useState({
@@ -12,11 +12,27 @@ const SearchParams = () => {
     animal: "",
     breed: "",
   });
+  const [animalTypes] = useAnimalTypeList();
   const [animal, setAnimal] = useState("");
   const [breeds] = useBreedList(animal);
   const [adoptedPet] = useContext(AdoptedPetContext);
   const results = useQuery(["search", requestParams], fetchSearch);
-  const pets = results?.data?.pets ?? [];
+  const pets = results?.data?.data?.animals ?? [];
+
+  // const handleGetLocation = async () => {
+  //   const API_KEY = import.meta.env.VITE_OPEN_CAGE_API_KEY;
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition((position) => {
+  //       const { latitude, longitude } = position.coords;
+  //       const currentLocation = fetch(
+  //         `https://api.opencagedata.com/geocode/v1/json?key=${API_KEY}&language=en&q=${latitude}+${longitude}`
+  //       );
+  //       console.log(currentLocation());
+  //     });
+  //   }
+  // };
+
+  // handleGetLocation();
 
   return (
     <div className="search-params">
@@ -43,7 +59,7 @@ const SearchParams = () => {
         </label>
 
         <label htmlFor="animal">
-          Animal
+          Animal Type
           <select
             id="animal"
             value={animal}
@@ -52,9 +68,9 @@ const SearchParams = () => {
             }}
           >
             <option />
-            {ANIMALS.map((animal) => (
-              <option key={animal} value={animal}>
-                {animal}
+            {animalTypes.map((animal) => (
+              <option key={animal.name} value={animal.name}>
+                {animal.name}
               </option>
             ))}
           </select>
@@ -65,8 +81,8 @@ const SearchParams = () => {
           <select disabled={!breeds.length} id="breed" name="breed">
             <option />
             {breeds.map((breed) => (
-              <option key={breed} value={breed}>
-                {breed}
+              <option key={breed.name} value={breed.name}>
+                {breed.name}
               </option>
             ))}
           </select>

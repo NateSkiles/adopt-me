@@ -24,17 +24,28 @@ const Details = () => {
     );
   }
 
-  const pet = results.data.pets[0];
+  const pet = results.data.data.animal;
+
+  const images = pet.photos.map((photo) => photo.full);
+
+  console.log(pet);
 
   return (
     <div className="details">
-      <Carousel images={pet.images} />
+      <Carousel images={images} />
       <div>
         <h1>{pet.name}</h1>
         <h2>
-          {pet.animal} - {pet.breed} - {pet.city}, {pet.state}
+          <span>
+            {pet.species} - {pet.breeds.primary}{" "}
+            {pet.colors.primary && <span>- {pet.colors.primary}</span>}
+          </span>
           <button onClick={() => setShowModal(true)}>Adopt {pet.name}</button>
-          <p>Description: {pet.description}</p>
+          <p>
+            Description:{" "}
+            <span dangerouslySetInnerHTML={{ __html: pet.description }} /> Find
+            out more <a href={pet.url}>here!</a>
+          </p>
           {showModal ? (
             <Modal>
               <div>

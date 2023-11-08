@@ -1,13 +1,15 @@
+import client from "./petfinderClient";
+
 const fetchPet = async ({ queryKey }) => {
   const id = queryKey[1];
 
-  const apiRes = await fetch(`https://pets-v2.dev-apis.com/pets?id=${id}`);
+  const res = await client.animal.show(+id);
 
-  if (!apiRes.ok) {
+  if (res.status !== 200) {
     throw new Error(`details/${id} fetch not ok`);
   }
 
-  return apiRes.json();
+  return res;
 };
 
 export default fetchPet;

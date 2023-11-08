@@ -177,6 +177,7 @@ header {
 .search-params label {
   display: block;
   width: 60px;
+  white-space: nowrap;
 }
 
 .search-params input,
@@ -185,6 +186,7 @@ header {
   font-size: 18px;
   height: 30px;
   width: 325px;
+  display: block;
 }
 
 .search-params button,
