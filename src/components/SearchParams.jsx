@@ -28,6 +28,8 @@ const SearchParams = () => {
   });
   const pets = searchResults?.data?.data?.animals ?? [];
 
+  console.log(searchResults);
+
   // Check if locationData is available and set the location state
   useEffect(() => {
     if (!hasLocationFetched) {
@@ -124,7 +126,7 @@ const SearchParams = () => {
 
         <button>Submit</button>
       </form>
-      <Results pets={pets} />
+      <Results pets={pets} searchResults={searchResults} />
     </div>
   );
 };
