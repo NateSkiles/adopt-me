@@ -1,38 +1,59 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { debounce } from "lodash";
 import AdoptedPetContext from "../utils/AdpotedPetContext";
 import Results from "./Results";
 import useBreedList from "../utils/useBreedList";
-import fetchSearch from "../utils/fetchSearch";
 import useAnimalTypeList from "../utils/useAnimalTypeList";
+import fetchSearch from "../utils/fetchSearch";
+import fetchLocation from "../utils/fetchLocation";
 
 const SearchParams = () => {
+  const [adoptedPet] = useContext(AdoptedPetContext);
   const [requestParams, setRequestParams] = useState({
     location: "",
     animal: "",
     breed: "",
   });
-  const [animalTypes] = useAnimalTypeList();
   const [animal, setAnimal] = useState("");
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [hasLocationFetched, setHasLocationFetched] = useState(false);
+  const [animalTypes] = useAnimalTypeList();
   const [breeds] = useBreedList(animal);
-  const [adoptedPet] = useContext(AdoptedPetContext);
-  const results = useQuery(["search", requestParams], fetchSearch);
-  const pets = results?.data?.data?.animals ?? [];
+  const locationData = useQuery(["location"], fetchLocation, {
+    enabled: !hasLocationFetched,
+  });
+  const searchResults = useQuery(["search", requestParams], fetchSearch, {
+    enabled: !isInputFocused && hasLocationFetched, // Only enable the query when the input is not focused
+  });
+  const pets = searchResults?.data?.data?.animals ?? [];
 
-  // const handleGetLocation = async () => {
-  //   const API_KEY = import.meta.env.VITE_OPEN_CAGE_API_KEY;
-  //   if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition((position) => {
-  //       const { latitude, longitude } = position.coords;
-  //       const currentLocation = fetch(
-  //         `https://api.opencagedata.com/geocode/v1/json?key=${API_KEY}&language=en&q=${latitude}+${longitude}`
-  //       );
-  //       console.log(currentLocation());
-  //     });
-  //   }
-  // };
+  // Check if locationData is available and set the location state
+  useEffect(() => {
+    if (!hasLocationFetched) {
+      const data = locationData.data?.data?.results[0].components;
+      if (data) {
+        const local = `${data.city}, ${data.state}`;
+        setRequestParams((prevParams) => ({
+          ...prevParams,
+          location: local, // Assuming locationData contains the user's location
+        }));
+      }
 
-  // handleGetLocation();
+      if (locationData.isFetched) {
+        setHasLocationFetched(true);
+      }
+    }
+  }, [locationData, hasLocationFetched]);
+
+  const handleChange = (value) => {
+    setRequestParams((prevParams) => ({
+      ...prevParams,
+      location: value,
+    }));
+  };
+
+  const debouncedHandleChange = debounce(handleChange, 300);
 
   return (
     <div className="search-params">
@@ -55,7 +76,20 @@ const SearchParams = () => {
         ) : null}
         <label htmlFor="location">
           Location
-          <input id="location" name="location" placeholder="Location" />
+          <input
+            id="location"
+            name="location"
+            placeholder="Location"
+            value={requestParams.location}
+            onChange={(e) =>
+              setRequestParams({ ...requestParams, location: e.target.value })
+            }
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => {
+              setIsInputFocused(false);
+              debouncedHandleChange.flush();
+            }}
+          />
         </label>
 
         <label htmlFor="animal">
